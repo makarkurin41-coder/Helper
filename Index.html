@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<title>Помощник</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f0f1a;
+    color: #eaeaea;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ===== Анимированный фон ===== */
+  .bg-glow {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 30%, rgba(88, 101, 242, 0.15), transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(235, 69, 158, 0.1), transparent 50%);
+    animation: floatBg 20s ease-in-out infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+  @keyframes floatBg {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    50% { transform: translate(-5%, -5%) rotate(5deg); }
+  }
+
+  /* ===== Шапка ===== */
+  header {
+    position: relative;
+    z-index: 2;
+    padding: 20px 20px 10px;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #5865f2, #eb459e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== Вкладки ===== */
+  .tabs {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 6px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #aaa;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, #5865f2, #7b68ee);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(88, 101, 242, 0.4);
+  }
+  .tab-btn:active { transform: scale(0.95); }
+
+  /* ===== Контент вкладок ===== */
+  .content {
+    position: relative;
+    z-index: 2;
+    padding: 8px 16px 100px;
+  }
+
+  .panel {
+    display: none;
+    animation: fadeSlideIn 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .panel.active { display: block; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== Карточки ===== */
+  .card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+  .card:active { transform: scale(0.99); }
+
+  .card h2 {
+    font-size: 16px;
+    margin-bottom: 14px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ===== Инпуты ===== */
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  input:focus {
+    border-color: #5865f2;
+    box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+  }
+  input::placeholder { color: #666; }
+
+  .btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #5865f2, #7b68ee);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.3s;
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+  }
+  .btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(88, 101, 242, 0.3);
+  }
+
+  /* ===== Батарея ===== */
+  .battery-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .battery-visual {
+    position: relative;
+    width: 140px;
+    height: 60px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .battery-visual::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 0 4px 4px 0;
+  }
+  .battery-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #00e676, #69f0ae);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s;
+    width: 0%;
+  }
+  .battery-fill.low { background: linear-gradient(90deg, #ff5252, #ff8a80); }
+  .battery-fill.medium { background: linear-gradient(90deg, #ffab40, #ffd180); }
+
+  .battery-percent {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .battery-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .info-row .label { color: #999; }
+  .info-row .value { color: #fff; font-weight: 600; }
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    background: #666;
+  }
+  .status-dot.on { background: #00e676; box-shadow: 0 0 8px #00e676; animation: pulse 1.5s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ===== Roblox ===== */
+  .roblox-result {
+    margin-top: 14px;
+    display: none;
+    animation: fadeSlideIn 0.5s ease;
+  }
+  .roblox-result.show { display: block; }
+  .game-thumb {
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: #222;
+    min-height: 120px;
+    object-fit: cover;
+  }
+  .game-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-box {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-box .num {
+    font-size: 18px;
+    font-weight: 700;
+    color: #5865f2;
+  }
+  .stat-box .lbl {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== YouTube ===== */
+  .yt-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    border: none;
+    margin-top: 14px;
+    display: none;
+    animation: fadeSlideIn 0.5s ease;
+    background: #000;
+  }
+  .yt-frame.show { display: block; }
+
+  /* ===== Файлы ===== */
+  .file-viewer {
+    margin-top: 14px;
+    display: none;
+    animation: fadeSlideIn 0.5s ease;
+  }
+  .file-viewer.show { display: block; }
+  .txt-content {
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    padding: 14px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #ddd;
+    font-family: 'Courier New', monospace;
+  }
+  audio {
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 12px;
+    outline: none;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+    font-size: 14px;
+    display: none;
+  }
+  .loading.show { display: block; }
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(88, 101, 242, 0.2);
+    border-top-color: #5865f2;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error {
+    color: #ff5252;
+    font-size: 13px;
+    margin-top: 10px;
+    text-align: center;
+    display: none;
+  }
+  .error.show { display: block; }
+
+  /* ===== Нижняя навигация (доп) ===== */
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, #0f0f1a 60%, transparent);
+    text-align: center;
+    font-size: 11px;
+    color: #444;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<header>
+  <h1>Помощник</h1>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="roblox">🎮 Roblox</button>
+  <button class="tab-btn" data-tab="battery">🔋 Батарея</button>
+  <button class="tab-btn" data-tab="youtube">▶️ YouTube</button>
+  <button class="tab-btn" data-tab="files">📂 Файлы</button>
+</div>
+
+<div class="content">
+
+  <!-- ===== ROBLOX ===== -->
+  <div class="panel active" id="panel-roblox">
+    <div class="card">
+      <h2>🎮 Статистика игры Roblox</h2>
+      <input type="text" id="robloxInput" placeholder="Вставь ссылку на игру Roblox">
+      <button class="btn" onclick="loadRoblox()">Показать статистику</button>
+      <div class="error" id="robloxError"></div>
+    </div>
+
+    <div class="loading" id="robloxLoading">
+      <div class="spinner"></div>
+      Загружаю данные...
+    </div>
+
+    <div class="roblox-result" id="robloxResult">
+      <div class="card">
+        <img class="game-thumb" id="gameThumb" alt="Обложка" onerror="this.style.display='none'">
+        <div class="game-title" id="gameTitle"></div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="num" id="statPlaying">—</div>
+            <div class="lbl">Онлайн</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="statVisits">—</div>
+            <div class="lbl">Посещения</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="statFavs">—</div>
+            <div class="lbl">В избранном</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="statLikes">—</div>
+            <div class="lbl">Лайки</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BATTERY ===== -->
+  <div class="panel" id="panel-battery">
+    <div class="card">
+      <h2>🔋 Статус батареи</h2>
+      <div class="battery-wrap">
+        <div class="battery-percent" id="batPercent">—</div>
+        <div class="battery-visual">
+          <div class="battery-fill" id="batFill"></div>
+        </div>
+        <div class="battery-info">
+          <div class="info-row">
+            <span class="label"><span class="status-dot" id="dotCharging"></span>Зарядка</span>
+            <span class="value" id="batCharging">—</span>
+          </div>
+          <div class="info-row">
+            <span class="label"><span class="status-dot" id="dotSaver"></span>Энергосбережение</span>
+            <span class="value" id="batSaver">—</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Время до полной</span>
+            <span class="value" id="batTime">—</span>
+          </div>
+        </div>
+      </div>
+      <div class="error" id="batError"></div>
+    </div>
+  </div>
+
+  <!-- ===== YOUTUBE ===== -->
+  <div class="panel" id="panel-youtube">
+    <div class="card">
+      <h2>▶️ YouTube видео</h2>
+      <input type="text" id="ytInput" placeholder="Вставь ссылку на YouTube видео">
+      <button class="btn" onclick="loadYouTube()">Смотреть</button>
+      <div class="error" id="ytError"></div>
+      <iframe class="yt-frame" id="ytFrame" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+    </div>
+  </div>
+
+  <!-- ===== FILES ===== -->
+  <div class="panel" id="panel-files">
+    <div class="card">
+      <h2>📂 Открыть файл</h2>
+      <input type="file" id="fileInput" accept=".txt,.mp3,.mp4,.jpg,.png,.pdf,.json,.html,.css,.js" style="display:none">
+      <button class="btn" onclick="document.getElementById('fileInput').click()">Выбрать файл</button>
+      <div class="file-viewer" id="fileViewer"></div>
+      <div class="error" id="fileError"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Помощник · работает в браузере</footer>
+
+<script>
+/* ===== Переключение вкладок ===== */
+const tabBtns = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.panel');
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ===== Утилиты ===== */
+function formatNum(n) {
+  if (n === undefined || n === null) return '—';
+  return Number(n).toLocaleString('ru-RU');
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+/* ===== ROBLOX ===== */
+async function loadRoblox() {
+  const input = document.getElementById('robloxInput').value.trim();
+  const result = document.getElementById('robloxResult');
+  const loading = document.getElementById('robloxLoading');
+
+  result.classList.remove('show');
+  document.getElementById('robloxError').classList.remove('show');
+
+  if (!input) {
+    showError('robloxError', 'Вставь ссылку на игру');
+    return;
+  }
+
+  // Извлекаем Place ID из ссылки
+  let placeId = null;
+  const patterns = [
+    /roblox\.com\/games\/(\d+)/i,
+    /web\.roblox\.com\/games\/(\d+)/i,
+    /^(\d+)$/
+  ];
+  for (const p of patterns) {
+    const m = input.match(p);
+    if (m) { placeId = m[1]; break; }
+  }
+
+  if (!placeId) {
+    showError('robloxError', 'Не удалось найти ID игры в ссылке');
+    return;
+  }
+
+  loading.classList.add('show');
+
+  try {
+    // Шаг 1: Place ID -> Universe ID
+    const uRes = await fetch(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`);
+    if (!uRes.ok) throw new Error('Игра не найдена');
+    const uData = await uRes.json();
+    const universeId = uData.universeId;
+    if (!universeId) throw new Error('Игра не найдена');
+
+    // Шаг 2: Данные игры
+    const gRes = await fetch(`https://games.roblox.com/v1/games?universeIds=${universeId}`);
+    if (!gRes.ok) throw new Error('Ошибка загрузки данных');
+    const gData = await gRes.json();
+    const game = gData.data && gData.data[0];
+    if (!game) throw new Error('Игра не найдена');
+
+    // Шаг 3: Обложка
+    const tRes = await fetch(`https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`);
+    const tData = await tRes.json();
+    let thumbUrl = '';
+    if (tData.data && tData.data[0] && tData.data[0].thumbnails && tData.data[0].thumbnails[0]) {
+      thumbUrl = tData.data[0].thumbnails[0].imageUrl;
+    }
+
+    document.getElementById('gameThumb').src = thumbUrl;
+    document.getElementById('gameThumb').style.display = 'block';
+    document.getElementById('gameTitle').textContent = game.name || 'Без названия';
+    document.getElementById('statPlaying').textContent = formatNum(game.playing);
+    document.getElementById('statVisits').textContent = formatNum(game.visits);
+    document.getElementById('statFavs').textContent = formatNum(game.favoritedCount);
+    document.getElementById('statLikes').textContent = formatNum(game.likes);
+
+    result.classList.add('show');
+  } catch (e) {
+    showError('robloxError', 'Ошибка: ' + e.message);
+  } finally {
+    loading.classList.remove('show');
+  }
+}
+
+/* ===== BATTERY ===== */
+let batteryObj = null;
+
+function updateBattery(bat) {
+  const percent = Math.round(bat.level * 100);
+  const fill = document.getElementById('batFill');
+  const pctEl = document.getElementById('batPercent');
+
+  pctEl.textContent = percent + '%';
+  fill.style.width = percent + '%';
+
+  fill.classList.remove('low', 'medium');
+  if (percent <= 20) fill.classList.add('low');
+  else if (percent <= 50) fill.classList.add('medium');
+
+  // Зарядка
+  const charging = bat.charging;
+  const chargeEl = document.getElementById('batCharging');
+  const dotCharging = document.getElementById('dotCharging');
+  if (charging) {
+    chargeEl.textContent = bat.chargingTime === Infinity ? 'Заряжается' : 'Да';
+    dotCharging.classList.add('on');
+  } else {
+    chargeEl.textContent = 'Нет';
+    dotCharging.classList.remove('on');
+  }
+
+  // Время до полной
+  const timeEl = document.getElementById('batTime');
+  if (charging && bat.chargingTime !== Infinity && isFinite(bat.chargingTime)) {
+    const min = Math.round(bat.chargingTime / 60);
+    timeEl.textContent = min + ' мин';
+  } else if (charging) {
+    timeEl.textContent = 'Заряжается';
+  } else if (isFinite(bat.dischargingTime) && bat.dischargingTime > 0) {
+    const min = Math.round(bat.dischargingTime / 60);
+    timeEl.textContent = min + ' мин';
+  } else {
+    timeEl.textContent = '—';
+  }
+}
+
+function initBattery() {
+  if (!navigator.getBattery) {
+    showError('batError', 'Батарея недоступна в этом браузере. Открой через Chrome на Android.');
+    return;
+  }
+  navigator.getBattery().then(bat => {
+    batteryObj = bat;
+    updateBattery(bat);
+    bat.addEventListener('levelchange', () => updateBattery(bat));
+    bat.addEventListener('chargingchange', () => updateBattery(bat));
+    bat.addEventListener('chargingtimechange', () => updateBattery(bat));
+    bat.addEventListener('dischargingtimechange', () => updateBattery(bat));
+  }).catch(() => {
+    showError('batError', 'Не удалось получить данные батареи');
+  });
+
+  // Энергосбережение — через media query (работает не везде)
+  const saverEl = document.getElementById('batSaver');
+  const dotSaver = document.getElementById('dotSaver');
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // Прямого API для энергосбережения нет, но можно проверить через navigator
+    if ('getBattery' in navigator) {
+      // В Chrome на Android при энергосбережении уровень батареи может быть ограничен
+      saverEl.textContent = 'Проверяется...';
+      dotSaver.classList.remove('on');
+      // Косвенная проверка: если браузер в режиме экономии, анимации отключаются
+      setTimeout(() => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          saverEl.textContent = 'Включено';
+          dotSaver.classList.add('on');
+        } else {
+          saverEl.textContent = 'Выключено';
+          dotSaver.classList.remove('on');
+        }
+      }, 500);
+    } else {
+      saverEl.textContent = 'Недоступно';
+    }
+  }
+}
+
+/* ===== YOUTUBE ===== */
+function loadYouTube() {
+  const input = document.getElementById('ytInput').value.trim();
+  const frame = document.getElementById('ytFrame');
+  document.getElementById('ytError').classList.remove('show');
+
+  if (!input) {
+    showError('ytError', 'Вставь ссылку на видео');
+    return;
+  }
+
+  let videoId = null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/
+  ];
+  for (const p of patterns) {
+    const m = input.match(p);
+    if (m) { videoId = m[1]; break; }
+  }
+
+  if (!videoId) {
+    showError('ytError', 'Не удалось найти ID видео');
+    return;
+  }
+
+  frame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+  frame.classList.add('show');
+}
+
+/* ===== FILES ===== */
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const viewer = document.getElementById('fileViewer');
+  const errorEl = document.getElementById('fileError');
+  errorEl.classList.remove('show');
+  viewer.innerHTML = '';
+  viewer.classList.remove('show');
+
+  const name = file.name.toLowerCase();
+
+  // Текст
+  if (name.endsWith('.txt') || name.endsWith('.json') || name.endsWith('.html') || name.endsWith('.css') || name.endsWith('.js') || name.endsWith('.md') || name.endsWith('.xml')) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const pre = document.createElement('div');
+      pre.className = 'txt-content';
+      pre.textContent = ev.target.result;
+      viewer.appendChild(pre);
+      viewer.classList.add('show');
+    };
+    reader.onerror = () => showError('fileError', 'Не удалось прочитать файл');
+    reader.readAsText(file);
+    return;
+  }
+
+  // Аудио
+  if (name.endsWith('.mp3') || name.endsWith('.wav') || name.endsWith('.ogg') || name.endsWith('.m4a') || name.endsWith('.aac')) {
+    const url = URL.createObjectURL(file);
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.src = url;
+    viewer.appendChild(audio);
+    viewer.classList.add('show');
+    return;
+  }
+
+  // Видео
+  if (name.endsWith('.mp4') || name.endsWith('.webm') || name.endsWith('.mov')) {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.controls = true;
+    video.src = url;
+    video.style.width = '100%';
+    video.style.borderRadius = '12px';
+    video.style.marginTop = '10px';
+    viewer.appendChild(video);
+    viewer.classList.add('show');
+    return;
+  }
+
+  // Картинки
+  if (name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png') || name.endsWith('.gif') || name.endsWith('.webp')) {
+    const url = URL.createObjectURL(file);
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.width = '100%';
+    img.style.borderRadius = '12px';
+    img.style.marginTop = '10px';
+    viewer.appendChild(img);
+    viewer.classList.add('show');
+    return;
+  }
+
+  // PDF
+  if (name.endsWith('.pdf')) {
+    const url = URL.createObjectURL(file);
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.style.width = '100%';
+    iframe.style.height = '400px';
+    iframe.style.border = 'none';
+    iframe.style.borderRadius = '12px';
+    iframe.style.marginTop = '10px';
+    viewer.appendChild(iframe);
+    viewer.classList.add('show');
+    return;
+  }
+
+  // Всё остальное — скачать
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.name;
+  a.textContent = 'Скачать ' + file.name;
+  a.style.display = 'block';
+  a.style.marginTop = '10px';
+  a.style.color = '#5865f2';
+  viewer.appendChild(a);
+  viewer.classList.add('show');
+});
+
+/* ===== Инициализация ===== */
+initBattery();
+</script>
+</body>
+</html>
